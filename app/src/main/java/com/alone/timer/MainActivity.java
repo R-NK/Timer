@@ -13,8 +13,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.app.NotificationCompat;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
+import android.widget.ListView;
 import android.widget.NumberPicker;
 import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,6 +38,10 @@ public class MainActivity extends AppCompatActivity {
     private NotificationManagerCompat nManager;
     private Intent intent;
     private PendingIntent pendingIntent;
+    private ListView recentList;
+    //private ArrayList<String> items;
+    private ArrayAdapter<String> adapter;
+    private List<String> items;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
         numberPickerSeconds = (NumberPicker)findViewById(R.id.numberPickerSeconds);
         textViewStart = (TextView)findViewById(R.id.StartText);
         textViewReset = (TextView)findViewById(R.id.ResetText);
+        recentList = (ListView)findViewById(R.id.recentList);
 
         numberPickerMinutes.setMinValue(0);
         numberPickerMinutes.setMaxValue(59);
@@ -51,6 +64,9 @@ public class MainActivity extends AppCompatActivity {
         nManager = (NotificationManagerCompat.from(getApplicationContext()));
         intent = new Intent(this, MainActivity.class);
         pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+
+        items = new ArrayList<String>();
+        adapter = new ArrayAdapter<String>(this,R.layout.list,items);
 
     }
 
@@ -76,6 +92,15 @@ public class MainActivity extends AppCompatActivity {
                     countDown = new CountDown(numberPickerMinutes.getValue() * 60000 + numberPickerSeconds.getValue() * 1000 + 1000, 100);
                     countDown.start();
                     textViewStart.setText("STOP");
+                    //履歴に追加
+                    int time = numberPickerMinutes.getValue() * 60000 + numberPickerSeconds.getValue() * 1000;
+                    long mm = time / 1000 / 60;
+                    long ss = time / 1000 % 60;
+                    String time_string = String.format("%1$02d:%2$02d", mm, ss);
+                    Collections.reverse(items);
+                    items.add(time_string);
+                    Collections.reverse(items);
+                    recentList.setAdapter(adapter);
 
                 } else {
                     countDown = new CountDown(CurrentTime, 100);
@@ -119,6 +144,7 @@ public class MainActivity extends AppCompatActivity {
             CurrentTime = millisUntilFinished;
             String TimeString = String.format("%1$02d:%2$02d", mm, ss);
             textViewTime.setText(TimeString);
+
             updateNotification(TimeString);
         }
     }
